@@ -32,8 +32,9 @@ def run_llm_call(provider: str, api_key: str, model_name: str, system_prompt: st
         if not model_name or "/" not in model_name:
             model_name = "Qwen/Qwen2.5-72B-Instruct"
         
-        # Use Hugging Face serverless client (checking UI token first, then environment variable)
-        token = clean_key if clean_key else os.environ.get("HF_TOKEN")
+        # Use Hugging Face serverless client (checking UI token first, then local/Space credentials)
+        from huggingface_hub import get_token
+        token = clean_key if clean_key else get_token()
         client = InferenceClient(model=model_name, token=token)
         
         messages = [
