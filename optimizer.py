@@ -32,27 +32,37 @@ def run_llm_call(provider: str, api_key: str, model_name: str, system_prompt: st
         if not model_name or "/" not in model_name:
             model_name = "Qwen/Qwen2.5-72B-Instruct"
         
-        # Use Hugging Face serverless client
-        if not clean_key:
-            raise ValueError("Hugging Face API Key is required. Please set your HF User Access Token in the workspace settings.")
-        client = InferenceClient(model=model_name, token=clean_key)
+        # Use Hugging Face serverless client (checking UI token first, then environment variable)
+        token = clean_key if clean_key else os.environ.get("HF_TOKEN")
+        client = InferenceClient(model=model_name, token=token)
         
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ]
         
-        response = client.chat_completion(
-            messages=messages,
-            max_tokens=2048,
-            temperature=0.7
-        )
-        return response.choices[0].message.content
+        try:
+            response = client.chat_completion(
+                messages=messages,
+                max_tokens=2048,
+                temperature=0.7
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            err_str = str(e).lower()
+            if "token" in err_str or "auth" in err_str or "unauthorized" in err_str or "api_key" in err_str:
+                raise ValueError(
+                    "A Hugging Face API Token is required for this model. "
+                    "Please enter your HF token in the settings sidebar. "
+                    "Get a free token at huggingface.co/settings/tokens"
+                )
+            raise e
 
     elif provider == "openai":
-        if not clean_key:
+        token = clean_key if clean_key else os.environ.get("OPENAI_API_KEY")
+        if not token:
             raise ValueError("OpenAI API Key is required. Please set it in the sidebar settings.")
-        client = OpenAI(api_key=clean_key)
+        client = OpenAI(api_key=token)
         
         name = model_name if model_name else "gpt-4o-mini"
         response = client.chat.completions.create(
@@ -67,9 +77,10 @@ def run_llm_call(provider: str, api_key: str, model_name: str, system_prompt: st
         return response.choices[0].message.content
 
     elif provider == "google gemini":
-        if not clean_key:
+        token = clean_key if clean_key else os.environ.get("GEMINI_API_KEY")
+        if not token:
             raise ValueError("Google Gemini API Key is required. Please set it in the sidebar settings.")
-        genai.configure(api_key=clean_key)
+        genai.configure(api_key=token)
         
         name = model_name if model_name else "gemini-1.5-flash"
         # Gemini expects system instructions in generation config or model initialization
@@ -87,9 +98,10 @@ def run_llm_call(provider: str, api_key: str, model_name: str, system_prompt: st
         return response.text
 
     elif provider == "anthropic":
-        if not clean_key:
+        token = clean_key if clean_key else os.environ.get("ANTHROPIC_API_KEY")
+        if not token:
             raise ValueError("Anthropic API Key is required. Please set it in the sidebar settings.")
-        client = anthropic.Anthropic(api_key=clean_key)
+        client = anthropic.Anthropic(api_key=token)
         
         name = model_name if model_name else "claude-3-5-sonnet-20240620"
         response = client.messages.create(

@@ -184,10 +184,6 @@ def handle_optimize_and_analyze(
     # Safety Check
     if not raw_prompt.strip():
         raise gr.Error("Please enter a raw prompt in the textbox.")
-        
-    if provider != "Hugging Face" and not api_key.strip():
-        raise gr.Error(f"API key is required to use the {provider} API. Enter it in the settings panel.")
-
     # 1. Run prompt optimization
     optimized_text = optimize_prompt(
         raw_prompt=raw_prompt,
