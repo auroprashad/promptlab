@@ -5,3 +5,4 @@ google-genai
 anthropic>=0.28.0
 jinja2
 markdown
+fastapi<0.115.7
