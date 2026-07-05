@@ -1,7 +1,7 @@
 import os
 from huggingface_hub import InferenceClient
 from openai import OpenAI
-import google.generativeai as genai
+from google import genai
 import anthropic
 
 def load_system_prompt(filename: str) -> str:
@@ -83,17 +83,16 @@ def run_llm_call(provider: str, api_key: str, model_name: str, system_prompt: st
         token = clean_key if clean_key else os.environ.get("GEMINI_API_KEY")
         if not token:
             raise ValueError("Google Gemini API Key is required. Please set it in the sidebar settings.")
-        genai.configure(api_key=token)
         
+        from google.genai import types
+        client = genai.Client(api_key=token)
         name = model_name if model_name else "gemini-1.5-flash"
-        # Gemini expects system instructions in generation config or model initialization
-        model = genai.GenerativeModel(
-            model_name=name,
-            system_instruction=system_prompt
-        )
-        response = model.generate_content(
-            user_prompt,
-            generation_config=genai.types.GenerationConfig(
+        
+        response = client.models.generate_content(
+            model=name,
+            contents=user_prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
                 temperature=0.7,
                 max_output_tokens=2048
             )
