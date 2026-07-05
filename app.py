@@ -289,6 +289,10 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue="violet", secondary_hue="indi
                     allow_custom_value=True,
                     info="Select backend engine model or type custom hub repository."
                 )
+                
+                api_notice = gr.Markdown(
+                    "💡 **Hugging Face Free Tier**: By default, this Space runs completely free. If you see authorization/quota errors, please create a free token at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) and paste it into the **API Secret Key** box above."
+                )
             
             # Dynamic selector options helper
             def update_model_dropdown(provider):
@@ -302,10 +306,26 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue="violet", secondary_hue="indi
                     return gr.update(choices=["claude-3-5-sonnet-20240620", "claude-3-haiku-20240307"], value="claude-3-5-sonnet-20240620")
                 return gr.update(choices=[], value="")
                 
+            def update_notice_text(provider):
+                if provider == "Hugging Face":
+                    return "💡 **Hugging Face Free Tier**: By default, this Space runs completely free. If you see authorization/quota errors, please create a free token at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) and paste it into the **API Secret Key** box above."
+                elif provider == "OpenAI":
+                    return "💡 **OpenAI API**: Enter your OpenAI API key above. You can manage your API keys on the [OpenAI API Keys platform](https://platform.openai.com/api-keys)."
+                elif provider == "Google Gemini":
+                    return "💡 **Google Gemini API**: Enter your Gemini API key above. Get a free API key in minutes from [Google AI Studio](https://aistudio.google.com/)."
+                elif provider == "Anthropic":
+                    return "💡 **Anthropic API**: Enter your Claude API key above. You can create keys in your [Anthropic Console](https://console.anthropic.com/)."
+                return ""
+                
             api_provider.change(
                 fn=update_model_dropdown,
                 inputs=api_provider,
                 outputs=model_name
+            )
+            api_provider.change(
+                fn=update_notice_text,
+                inputs=api_provider,
+                outputs=api_notice
             )
 
             gr.HTML("<hr style='border-color: rgba(255,255,255,0.05); margin: 15px 0;'/>")

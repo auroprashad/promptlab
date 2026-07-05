@@ -51,11 +51,13 @@ def run_llm_call(provider: str, api_key: str, model_name: str, system_prompt: st
             return response.choices[0].message.content
         except Exception as e:
             err_str = str(e).lower()
-            if "token" in err_str or "auth" in err_str or "unauthorized" in err_str or "api_key" in err_str:
+            if "token" in err_str or "auth" in err_str or "unauthorized" in err_str or "api_key" in err_str or "401" in err_str or "402" in err_str or "payment" in err_str:
                 raise ValueError(
-                    "A Hugging Face API Token is required for this model. "
-                    "Please enter your HF token in the settings sidebar. "
-                    "Get a free token at huggingface.co/settings/tokens"
+                    "A Hugging Face API Token is required or your free quota is depleted. "
+                    "Please enter your HF access token in the settings sidebar. "
+                    "You can get a free token at huggingface.co/settings/tokens. "
+                    "If you are the Space owner, set the token as a Space Secret named 'HF_TOKEN' "
+                    "in your Space's Settings tab so it runs out-of-the-box for all visitors!"
                 )
             raise e
 
