@@ -583,4 +583,4 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue="violet", secondary_hue="indi
 
 # Run app
 if __name__ == "__main__":
-    demo.launch(server_name="127.0.0.1", server_port=7860)
+    demo.launch()
