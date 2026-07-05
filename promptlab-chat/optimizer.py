@@ -22,18 +22,23 @@ def run_chat_completion(messages: list) -> str:
     # Inject system instruction as first message
     chat_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages
     
-    try:
-        response = client.chat_completion(
-            messages=chat_messages,
-            max_tokens=2048,
-            temperature=0.7
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        err_str = str(e).lower()
-        if "token" in err_str or "auth" in err_str or "unauthorized" in err_str or "api_key" in err_str or "401" in err_str or "402" in err_str or "403" in err_str or "payment" in err_str or "forbidden" in err_str or "permission" in err_str:
-            raise ValueError(
-                "Hugging Face credentials missing or unauthorized. "
-                "Please configure a Space Secret named 'HF_TOKEN' with the 'Make calls to Inference Providers' scope enabled."
+    import time
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = client.chat_completion(
+                messages=chat_messages,
+                max_tokens=2048,
+                temperature=0.7
             )
-        raise e
+            return response.choices[0].message.content
+        except Exception as e:
+            if attempt == max_retries - 1:
+                err_str = str(e).lower()
+                if "token" in err_str or "auth" in err_str or "unauthorized" in err_str or "api_key" in err_str or "401" in err_str or "402" in err_str or "403" in err_str or "payment" in err_str or "forbidden" in err_str or "permission" in err_str:
+                    raise ValueError(
+                        "Hugging Face credentials missing or unauthorized. "
+                        "Please configure a Space Secret named 'HF_TOKEN' with the 'Make calls to Inference Providers' scope enabled."
+                    )
+                raise e
+            time.sleep(2)
