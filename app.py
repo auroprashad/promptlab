@@ -1,5 +1,24 @@
 import os
 import gradio as gr
+import gradio_client.utils
+
+# Monkey-patch Gradio Client schema parser to resolve Pydantic-FastAPI boolean schema crashes (TypeError: argument of type 'bool' is not iterable)
+orig_private = getattr(gradio_client.utils, "_json_schema_to_python_type", None)
+orig_public = getattr(gradio_client.utils, "json_schema_to_python_type", None)
+
+if orig_private:
+    def patched_private(schema, defs):
+        if isinstance(schema, bool):
+            schema = {}
+        return orig_private(schema, defs)
+    gradio_client.utils._json_schema_to_python_type = patched_private
+
+if orig_public:
+    def patched_public(schema):
+        if isinstance(schema, bool):
+            schema = {}
+        return orig_public(schema)
+    gradio_client.utils.json_schema_to_python_type = patched_public
 from optimizer import optimize_prompt
 from analyzer import analyze_prompt
 from templates import search_templates, get_categories, TEMPLATES
