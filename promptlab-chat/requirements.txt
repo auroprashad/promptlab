@@ -3,3 +3,4 @@ huggingface_hub==0.24.2
 jinja2
 markdown
 fastapi<0.115.7
+openai
