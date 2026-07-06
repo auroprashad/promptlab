@@ -1,7 +1,7 @@
 gradio>=4.44.0
 huggingface_hub==0.24.2
 openai>=1.30.0
-google-genai
+
 anthropic>=0.28.0
 jinja2
 markdown

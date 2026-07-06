@@ -1,7 +1,7 @@
 import os
 from huggingface_hub import InferenceClient
 from openai import OpenAI
-from google import genai
+
 import anthropic
 
 def load_system_prompt(filename: str) -> str:
@@ -89,20 +89,28 @@ def run_llm_call(provider: str, api_key: str, model_name: str, system_prompt: st
         if not token:
             raise ValueError("Google Gemini API Key is required. Please set it in the sidebar settings.")
         
-        from google.genai import types
-        client = genai.Client(api_key=token)
         name = model_name if model_name else "gemini-1.5-flash"
+        import requests
         
-        response = client.models.generate_content(
-            model=name,
-            contents=user_prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system_prompt,
-                temperature=0.7,
-                max_output_tokens=2048
-            )
-        )
-        return response.text
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{name}:generateContent?key={token}"
+        headers = {"Content-Type": "application/json"}
+        payload = {
+            "contents": [
+                {"parts": [{"text": user_prompt}]}
+            ],
+            "systemInstruction": {
+                "parts": [{"text": system_prompt}]
+            },
+            "generationConfig": {
+                "temperature": 0.7,
+                "maxOutputTokens": 2048
+            }
+        }
+        
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        result = response.json()
+        return result["candidates"][0]["content"]["parts"][0]["text"]
 
     elif provider == "anthropic":
         token = clean_key if clean_key else os.environ.get("ANTHROPIC_API_KEY")
