@@ -717,6 +717,15 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue="violet"), css=CUSTOM_CSS, ti
         outputs=[chatbot, save_chat_trigger]
     )
 
+# Dummy function to satisfy Hugging Face ZeroGPU platform check if hosted on GPU hardware
+try:
+    import spaces
+    @spaces.GPU
+    def dummy_gpu_fn():
+        return None
+except Exception:
+    pass
+
 # Run app
 if __name__ == "__main__":
     demo.launch()
